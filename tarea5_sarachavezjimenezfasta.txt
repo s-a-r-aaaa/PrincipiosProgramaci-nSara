@@ -1,0 +1,97 @@
+import os
+
+# Mostrar la carpeta desde donde se ejecuta Python
+print("Directorio actual:")
+print(os.getcwd())
+
+# Obtener el nombre del organismo
+archivo_fasta = input("Nombre del archivo FASTA: ")
+
+nombre_organismo = archivo_fasta.split(".")[0]
+
+# Diccionario para obtener las bases complementarias
+complemento = {
+    "A": "T",
+    "T": "A",
+    "G": "C",
+    "C": "G"
+}
+
+# Variables para calcular el GC total
+total_gc = 0
+total_bases = 0
+
+# Variables para controlar las líneas
+numero_linea = 0
+primera_secuencia = False
+
+# Abrir el archivo FASTA
+archivo = open(archivo_fasta, "r")
+
+for linea in archivo:
+
+    numero_linea = numero_linea + 1
+
+    linea = linea.strip()
+
+    if linea == "":
+        continue
+
+    # Identificar los encabezados
+    if linea.startswith(">"):
+
+        encabezado = linea[1:]
+
+        print("Organismo " + nombre_organismo +
+              ", contig " + encabezado)
+
+        primera_secuencia = True
+
+    else:
+
+        # Calcular el contenido GC de la línea
+        cantidad_gc = (
+            linea.count("G") +
+            linea.count("C")
+        )
+
+        gc_linea = cantidad_gc / len(linea)
+
+        print("GC línea " + str(numero_linea) +
+              ": " + format(gc_linea, ".2f"))
+
+        # Acumular los valores para el GC total
+        total_gc = total_gc + cantidad_gc
+        total_bases = total_bases + len(linea)
+
+        # Obtener la complementaria de la primera secuencia
+        if primera_secuencia:
+
+            complementaria = ""
+
+            for base in linea:
+                complementaria = complementaria + complemento[base]
+
+            print("Secuencia complementaria: " + complementaria)
+
+            primera_secuencia = False
+
+        # Identificar el codón ATG
+        if "ATG" in linea:
+
+            print("ATG en línea " + str(numero_linea))
+
+# Cerrar el archivo
+archivo.close()
+
+# Calcular el contenido GC total
+if total_bases > 0:
+
+    gc_total = total_gc / total_bases
+
+    print("GC total del archivo: " +
+          format(gc_total, ".2f"))
+
+else:
+
+    print("El archivo no contiene secuencias.")
