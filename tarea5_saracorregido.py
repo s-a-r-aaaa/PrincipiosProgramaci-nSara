@@ -1,0 +1,60 @@
+import os
+
+print("Directorio actual:")
+print(os.getcwd())
+
+archivo_fasta = input("Nombre del archivo FASTA: ")
+nombre_organismo = os.path.basename(archivo_fasta).split(".")[0]
+
+complemento = {
+    "A": "T",
+    "T": "A",
+    "G": "C",
+    "C": "G"
+}
+
+total_gc = 0
+total_bases = 0
+numero_linea = 0
+primera_secuencia = False
+
+archivo = open(archivo_fasta, "r")
+
+for linea in archivo:
+    numero_linea = numero_linea + 1
+    linea = linea.strip()
+
+    if linea == "":
+        continue
+
+    if linea.startswith(">"):
+        encabezado = linea[1:]
+        print("Organismo " + nombre_organismo + ", contig " + encabezado)
+        primera_secuencia = True
+    else:
+        secuencia = linea.upper()
+        cantidad_gc = secuencia.count("G") + secuencia.count("C")
+        gc_linea = cantidad_gc / len(secuencia)
+
+        print("GC línea " + str(numero_linea) + ": " + format(gc_linea, ".2f"))
+
+        total_gc = total_gc + cantidad_gc
+        total_bases = total_bases + len(secuencia)
+
+        if primera_secuencia:
+            complementaria = ""
+            for base in secuencia:
+                complementaria = complementaria + complemento.get(base, base)
+            print(complementaria)
+            primera_secuencia = False
+
+        if "ATG" in secuencia:
+            print("ATG en línea " + str(numero_linea))
+
+archivo.close()
+
+if total_bases > 0:
+    gc_total = total_gc / total_bases
+    print("GC total del archivo: " + format(gc_total, ".2f"))
+else:
+    print("El archivo no contiene secuencias.")
