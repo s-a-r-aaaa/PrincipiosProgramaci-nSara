@@ -1,0 +1,81 @@
+import os
+
+
+def formato_gc(valor):
+    # Truncar a dos decimales para coincidir con el formato del ejemplo.
+    valor = int(valor * 100 + 0.000001) / 100
+    texto = format(valor, ".2f").rstrip("0").rstrip(".")
+    if texto.startswith("0."):
+        texto = texto[1:]
+    return texto
+
+# Mostrar la carpeta desde donde se ejecuta Python
+print("Directorio actual:")
+print(os.getcwd())
+
+# Obtener el nombre del organismo a partir del archivo FASTA
+archivo_fasta = input("Nombre del archivo FASTA: ")
+nombre_organismo = os.path.basename(archivo_fasta).split(".")[0]
+
+# Diccionario para obtener las bases complementarias
+complemento = {
+    "A": "T",
+    "T": "A",
+    "G": "C",
+    "C": "G"
+}
+
+total_gc = 0
+total_bases = 0
+numero_linea = 0
+primera_secuencia = False
+
+archivo = open(archivo_fasta, "r")
+
+for linea in archivo:
+    numero_linea = numero_linea + 1
+    linea = linea.strip()
+
+    if linea == "":
+        continue
+
+    if linea.startswith(">"):
+        encabezado = linea[1:]
+        print("Organismo " + nombre_organismo + ", contig " + encabezado)
+        primera_secuencia = True
+
+    else:
+        # Pasar la secuencia a mayúsculas para contar G, C y buscar ATG
+        secuencia = linea.upper()
+
+        cantidad_gc = secuencia.count("G") + secuencia.count("C")
+        gc_linea = cantidad_gc / len(secuencia)
+
+        print("GC línea " + str(numero_linea) + ": " + formato_gc(gc_linea))
+
+        # Acumular bases para calcular el GC total del archivo
+        total_gc = total_gc + cantidad_gc
+        total_bases = total_bases + len(secuencia)
+
+        # Obtener la complementaria de la primera secuencia
+        if primera_secuencia:
+            complementaria = ""
+
+            for base in secuencia:
+                # Mantener letras desconocidas sin causar un error
+                complementaria = complementaria + complemento.get(base, base)
+
+            print(complementaria)
+            primera_secuencia = False
+
+        # La búsqueda no depende de mayúsculas o minúsculas
+        if "ATG" in secuencia:
+            print("ATG en línea " + str(numero_linea))
+
+archivo.close()
+
+if total_bases > 0:
+    gc_total = total_gc / total_bases
+    print("GC total del archivo: " + formato_gc(gc_total))
+else:
+    print("El archivo no contiene secuencias.")
